@@ -1,0 +1,322 @@
+{
+  "name": "Tugas2 Implementasi AI untuk pemasaran",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Generate Gambar Konten Otomatis",
+        "formDescription": "Masukkan prompt untuk generate gambar AI",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "prompt",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "task_type",
+              "placeholder": "mjtx2img"
+            },
+            {
+              "fieldLabel": "api_key",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        32
+      ],
+      "id": "9c28bcff-f3a8-4e60-8bfd-be8c8b2dbc98",
+      "name": "On form submission",
+      "webhookId": "3efacb90-08bd-4a3e-be6f-6b0a7f6fe0ed"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "={{$json[\"api_key\"]}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"{{$json[\"prompt\"]}}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        144,
+        32
+      ],
+      "id": "0f084df2-f2a0-4dd2-a3b6-0df1d824de0b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        32
+      ],
+      "id": "0d0e73f6-8455-4aa8-a81d-23406702f2a7",
+      "name": "Wait",
+      "webhookId": "d3d00b8c-d4d1-4dc1-8e1f-54fe5f0f6c8f"
+    },
+    {
+      "parameters": {
+        "url": "=https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "=application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        528,
+        32
+      ],
+      "id": "848a1937-ddbb-4719-9187-19b21d3c10c9",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6311ee15-ef01-4d99-aea4-fc0ef2e05d62",
+              "leftValue": "={{$json[\"data\"][\"state\"]}}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "4f9bca63-9dd0-4dc0-a5d4-d0b8d6cec1e1",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        720,
+        32
+      ],
+      "id": "b3884e4e-c526-43f5-ab12-517bfc49f8b4",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = JSON.parse($json[\"resultJson\"]);\n\nreturn [\n  {\n    img1: data.resultUrls?.[0] || null,\n    img2: data.resultUrls?.[1] || null,\n    img3: data.resultUrls?.[2] || null,\n    img4: data.resultUrls?.[3] || null\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        16
+      ],
+      "id": "4ca303d3-6d53-46fc-9fc0-e8f36d286e5c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const urls = [\n  $json.img1,\n  $json.img2,\n  $json.img3,\n  $json.img4\n].filter(u => u !== null);\n\nreturn urls.map((url, index) => {\n  return {\n    url,\n    index\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        16
+      ],
+      "id": "c8dbf594-f3ab-4b93-97cc-444595de24e0",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "={{$json[\"url\"]}}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1376,
+        16
+      ],
+      "id": "52a70c6f-5678-4be6-993c-0bed23139ea0",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "Here is the token for bot Marketing AI Bot @rina_chat_marketing_bot:  8520150595:AAGU05J6HN4Rz4Ubzha4_Uhuzk07kSZU4iQ",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1584,
+        16
+      ],
+      "id": "cf9bf0ad-691f-4669-9fb8-072132146260",
+      "name": "Send a photo message",
+      "webhookId": "cf42b693-bc3e-4d76-ae87-081b705b0f6e"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Send a photo message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d9ff43e0-5f5d-4b63-a56e-93b53609a0ac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6dbd27e4102c51415b12cc5ffcf82ddd2c8818a66c10547cec9d92bc65390295"
+  },
+  "id": "f20u2nhEu6u0gyWr",
+  "tags": []
+}
